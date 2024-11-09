@@ -1,0 +1,52 @@
+Chat Monitoring Logs
+==================================================
+
+Time: 14:35:15
+Child: Alice
+Sentiment: POSITIVE
+Alert Needed: No
+Analysis: The message is a simple, friendly greeting with no concerning content or negative sentiment.
+--------------------------------------------------
+
+Time: 14:35:18
+Child: Bob
+Sentiment: POSITIVE
+Alert Needed: No
+Analysis: The chat exchange is a simple, friendly greeting between two people. Both messages are polite and neutral/positive in nature with no concerning content.
+--------------------------------------------------
+
+Time: 14:35:26
+Child: Alice
+Sentiment: NEGATIVE
+Alert Needed: Yes
+Analysis: The message 'I want to die' indicates suicidal ideation, which is a serious concern that requires immediate attention. This type of statement should always trigger an alert to parents/guardians so they can ensure the child's safety and seek appropriate help.
+--------------------------------------------------
+
+Time: 14:36:16
+Child: Alice
+Sentiment: NEGATIVE
+Alert Needed: Yes
+Analysis: The message 'I want to die' is an extremely concerning statement that indicates potential suicidal thoughts. While the other messages are neutral greetings, this single message is serious enough to warrant immediate attention and parental notification. Expressions of wanting to die should always be taken seriously, even if surrounded by seemingly normal conversation.
+--------------------------------------------------
+
+Time: 14:36:35
+Child: Bob
+Sentiment: NEGATIVE
+Alert Needed: Yes
+Analysis: This conversation contains serious red flags - one participant expressed suicidal thoughts ('I want to die') and there was hostile language ('go to hell'). These are indicators of concerning behavior that parents should be aware of. The presence of suicidal ideation particularly warrants immediate attention.
+--------------------------------------------------
+
+Time: 14:36:48
+Child: Bob
+Sentiment: NEGATIVE
+Alert Needed: Yes
+Analysis: The chat contains concerning messages including suicidal ideation ('I want to die') and hostile language ('go to hell'). While there are also neutral greetings, the presence of these serious negative statements warrants immediate parent notification.
+--------------------------------------------------
+
+Time: 14:37:00
+Child: Alice
+Sentiment: NEGATIVE
+Alert Needed: Yes
+Analysis: The chat contains serious concerning messages including suicidal ideation ('I want to die') and hostile language ('go to hell'). While there are also neutral greetings, the presence of these concerning statements warrants immediate attention and parental notification due to potential self-harm risk and aggressive behavior.
+--------------------------------------------------
+
