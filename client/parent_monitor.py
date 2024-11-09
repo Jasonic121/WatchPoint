@@ -112,7 +112,7 @@ class ParentMonitorWindow:
             text="Pause Monitoring",
             command=self.toggle_monitoring,
             bg=MonitorStyle.ALERT_BG,
-            fg="white"
+            fg="grey"
         )
         self.monitor_button.pack(side=tk.LEFT, padx=5)
 
@@ -122,7 +122,7 @@ class ParentMonitorWindow:
             text="Reset Chat",
             command=self.confirm_reset,
             bg=MonitorStyle.WARNING_BG,
-            fg="white"
+            fg="grey"
         )
         self.reset_button.pack(side=tk.LEFT, padx=5)
 
