@@ -10,7 +10,7 @@ app = FastAPI()
 async def analyze_chats(request: ChatAnalysisRequest):
     sentiment_response = analyze_sentiment(request.chats)
 
-    if sentiment_response.alert_needed:
-        send_alert_to_parent(request.username, sentiment_response)
+    # if sentiment_response.alert_needed:
+    #     send_alert_to_parent(request.username, sentiment_response)
 
     return sentiment_response
