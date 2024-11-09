@@ -105,13 +105,23 @@ class ChatWindow:
         main_frame = ttk.Frame(self.window, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Header
+        # Header with counter
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill=tk.X, pady=(0, 10))
+        
         header = ttk.Label(
-            main_frame,
+            header_frame,
             text=f"Chat with {self.other_name}",
             font=MessengerStyle.HEADER_FONT
         )
-        header.pack(pady=(0, 10))
+        header.pack(side=tk.LEFT)
+        
+        self.message_counter = ttk.Label(
+            header_frame,
+            text="Messages: 0",
+            font=MessengerStyle.MESSAGE_FONT
+        )
+        self.message_counter.pack(side=tk.RIGHT)
         
         # Chat area
         chat_frame = ttk.Frame(main_frame)
@@ -181,6 +191,11 @@ class ChatWindow:
         
         # Initial state
         self.chat_display.config(state=tk.DISABLED)
+        self.message_count = 0
+        self.update_counter()
+
+    def update_counter(self):
+        self.message_counter.config(text=f"Messages: {self.message_count}")
 
     def send_message(self) -> bool:
         message = self.message_entry.get("1.0", tk.END).strip()
@@ -188,6 +203,8 @@ class ChatWindow:
             return False
         
         self.message_entry.delete("1.0", tk.END)
+        self.message_count += 1
+        self.update_counter()
         self.display_message(self.name, message, is_self=True)
         self.message_callback(self.name, message)
         return True
@@ -209,6 +226,8 @@ class ChatWindow:
         self.chat_display.delete(1.0, tk.END)
         self.chat_display.config(state=tk.DISABLED)
         self.message_entry.delete(1.0, tk.END)
+        self.message_count = 0
+        self.update_counter()
         logging.info(f"Chat cleared for {self.name}")
 
     def handle_close(self):
@@ -227,8 +246,11 @@ class MessengerChat:
         self.alert_queue = queue.Queue()
         self.current_chat = []
         self.running = True
-        self.window_size = 15  # Sliding window size
-        self.message_count = 0
+        
+        # Sliding window configuration
+        self.window_size = 3  # Size of analysis window
+        self.last_analyzed_index = -1  # Track last analyzed message
+        self.messages_since_analysis = 0  # Counter for messages since last analysis
         
         # Create windows
         self.parent_window = ParentMonitorWindow(
@@ -254,7 +276,7 @@ class MessengerChat:
         
         self.position_windows()
         self.start_analysis_checker()
-        logging.info("MessengerChat initialized")
+        logging.info(f"MessengerChat initialized with sliding window size: {self.window_size}")
 
     def get_analysis_window(self) -> List[Chat]:
         """Get the current sliding window of messages"""
@@ -264,22 +286,27 @@ class MessengerChat:
 
     def should_analyze(self) -> bool:
         """Determine if analysis should be performed"""
-        if len(self.current_chat) <= self.window_size:
+        total_messages = len(self.current_chat)
+        
+        # First analysis when we reach window_size
+        if total_messages == self.window_size and self.last_analyzed_index == -1:
             return True
-        return len(self.current_chat) % 5 == 0  # Analyze every 5 messages after window size
+        
+        # After first window, only analyze when we have window_size new messages
+        if self.messages_since_analysis >= self.window_size:
+            return True
+        
+        return False
 
     def position_windows(self):
-        """Position all windows on the screen"""
         screen_width = self.alice_window.window.winfo_screenwidth()
         screen_height = self.alice_window.window.winfo_screenheight()
         
-        # Calculate dimensions
         chat_width = MessengerStyle.WINDOW_WIDTH
         chat_height = MessengerStyle.WINDOW_HEIGHT
         monitor_width = MonitorStyle.WINDOW_WIDTH
         monitor_height = MonitorStyle.WINDOW_HEIGHT
         
-        # Position windows
         alice_x = (screen_width // 4) - (chat_width // 2)
         alice_y = (screen_height // 2) - (chat_height // 2)
         self.alice_window.window.geometry(f"{chat_width}x{chat_height}+{alice_x}+{alice_y}")
@@ -296,10 +323,54 @@ class MessengerChat:
             window.lift()
             window.focus_force()
 
+    def handle_message(self, sender: str, message: str):
+        """Handle new message from a chat window"""
+        self.current_chat.append(Chat(sender=sender, message=message))
+        self.messages_since_analysis += 1
+        
+        # Display in other window
+        if sender == "Alice":
+            self.bob_window.display_message("Alice", message, is_self=False)
+            self.bob_window.message_count += 1
+            self.bob_window.update_counter()
+        else:
+            self.alice_window.display_message("Bob", message, is_self=False)
+            self.alice_window.message_count += 1
+            self.alice_window.update_counter()
+        
+        # Log message stats
+        logging.debug(f"Messages: total={len(self.current_chat)}, since_analysis={self.messages_since_analysis}")
+        
+        # Analyze if needed
+        if self.should_analyze():
+            def analyze_wrapper():
+                try:
+                    analysis_window = self.get_analysis_window()
+                    logging.info(f"Analyzing window of {len(analysis_window)} messages")
+                    
+                    results = self.async_handler.run(
+                        self.client.analyze_chats(
+                            username=f"{sender}_demo",
+                            chats=analysis_window
+                        )
+                    )
+                    
+                    if results:
+                        self.message_queue.put((sender, results))
+                        self.last_analyzed_index = len(self.current_chat) - 1
+                        self.messages_since_analysis = 0
+                        logging.info(f"Analysis complete. Next analysis after {self.window_size} more messages")
+                        
+                except Exception as e:
+                    logging.error(f"Analysis error: {e}")
+
+            threading.Thread(target=analyze_wrapper, daemon=True).start()
+
     def reset_chat(self):
-        """Reset all chat windows and history"""
+        """Reset chat and analysis state"""
         self.current_chat = []
-        self.message_count = 0
+        self.last_analyzed_index = -1
+        self.messages_since_analysis = 0
         
         # Clear chat windows
         self.alice_window.clear_chat()
@@ -320,43 +391,18 @@ class MessengerChat:
         
         logging.info("Chat system reset")
 
-    def handle_message(self, sender: str, message: str):
-        """Handle new message from a chat window"""
-        self.current_chat.append(Chat(sender=sender, message=message))
-        self.message_count += 1
-        
-        # Display in other window
-        if sender == "Alice":
-            self.bob_window.display_message("Alice", message, is_self=False)
-        else:
-            self.alice_window.display_message("Bob", message, is_self=False)
-        
-        # Analyze if needed
-        if self.should_analyze():
-            def analyze_wrapper():
-                try:
-                    analysis_window = self.get_analysis_window()
-                    results = self.async_handler.run(
-                        self.client.analyze_chats(
-                            username=f"{sender}_demo",
-                            chats=analysis_window
-                        )
-                    )
-                    if results:
-                        self.message_queue.put((sender, results))
-                except Exception as e:
-                    logging.error(f"Analysis error: {e}")
-
-            threading.Thread(target=analyze_wrapper, daemon=True).start()
-
     def start_analysis_checker(self):
         """Start the analysis checking loop"""
         def check_analysis():
             try:
                 sender, results = self.message_queue.get_nowait()
                 if results:
-                    window_start = max(1, len(self.current_chat) - self.window_size + 1)
-                    window_end = len(self.current_chat)
+                    # Calculate the exact message range that was analyzed
+                    if len(self.current_chat) <= self.window_size:
+                        start_msg = 1
+                    else:
+                        start_msg = len(self.current_chat) - self.window_size + 1
+                    end_msg = len(self.current_chat)
                     
                     alert = MonitoringAlert(
                         timestamp=datetime.now().strftime("%H:%M:%S"),
@@ -364,9 +410,11 @@ class MessengerChat:
                         sentiment=results.sentiment,
                         explanation=results.explanation,
                         alert_needed=results.alert_needed,
-                        message_range=f"Messages {window_start} - {window_end}"
+                        message_range=f"Messages {start_msg} - {end_msg} (Window of {self.window_size})"
                     )
                     self.alert_queue.put(alert)
+                    logging.info(f"Analysis results for messages {start_msg}-{end_msg}: {results.sentiment}")
+                    
             except queue.Empty:
                 pass
             finally:
@@ -412,5 +460,22 @@ class MessengerChat:
             self.stop_application()
 
 if __name__ == "__main__":
-    chat_app = MessengerChat()
-    chat_app.run()
+    try:
+        # Configure logging
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler('chat_app.log'),
+                logging.StreamHandler()
+            ]
+        )
+        
+        # Start the application
+        logging.info("Starting Chat Application")
+        chat_app = MessengerChat()
+        chat_app.run()
+        
+    except Exception as e:
+        logging.error(f"Application failed to start: {e}")
+        sys.exit(1)
