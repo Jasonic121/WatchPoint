@@ -1,26 +1,18 @@
 # requirements.txt
 
 # Server Dependencies
-fastapi>=0.104.0
-uvicorn>=0.24.0
-openai>=1.3.0
-pydantic>=2.4.2
-python-dotenv>=1.0.0
-email-validator>=2.0.0
+fastapi==0.104.0
+uvicorn==0.24.0
+openai==1.3.0
+pydantic==2.4.2
+python-dotenv==1.0.0
+email-validator==2.0.0
 
 # Client Dependencies
-httpx>=0.25.0
-nest-asyncio>=1.5.8
-python-tkinter>=3.10.0  # Usually comes with Python installation
-typing-extensions>=4.8.0
-asyncio>=3.4.3
-aiofiles>=23.2.1
+httpx==0.25.0
+nest-asyncio==1.5.8
+typing-extensions==4.8.0
+asyncio==3.4.3
 
-# Logging and Monitoring
-python-json-logger>=2.0.7
-
-# Development Tools
-black>=23.10.1  # Code formatting
-pylint>=3.0.2   # Code analysis
-pytest>=7.4.3   # Testing
-pytest-asyncio>=0.21.1  # Async testing support
+# Logging
+python-json-logger==2.0.7
