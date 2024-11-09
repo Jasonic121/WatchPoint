@@ -25,7 +25,7 @@ def analyze_sentiment(chats: List[Chat]) -> SentimentResponse:
     {chat_text}
     """
 
-    response = client.chat.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="anthropic/claude-3-5-sonnet-20241022",
         messages=[
             {"role": "system", "content": "You are an AI assistant that analyzes chat messages for sentiment and potential issues."},
