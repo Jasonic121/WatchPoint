@@ -3,5 +3,7 @@ uvicorn
 pydantic
 openai
 python-dotenv
-httpx
 tkinter
+httpx>=0.25.0
+python-dotenv>=1.0.0
+nest-asyncio>=1.5.8
