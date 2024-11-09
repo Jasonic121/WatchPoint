@@ -1,0 +1,11 @@
+Chat Monitoring Logs
+==================================================
+
+Time: 14:50:51
+Child: Bob
+Message Range: Messages 1 - 1
+Sentiment: POSITIVE
+Alert Needed: No
+Analysis: The chat message is a simple, neutral greeting ('hey') with no concerning content or negative tone. While brief, it appears to be a normal conversation starter.
+--------------------------------------------------
+

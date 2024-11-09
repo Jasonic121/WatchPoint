@@ -1,0 +1,31 @@
+2024-11-09 14:48:22,764 - INFO - AsyncTkThread initialized
+2024-11-09 14:48:23,239 - INFO - ChatWindow initialized for Alice
+2024-11-09 14:48:23,250 - INFO - ChatWindow initialized for Bob
+2024-11-09 14:48:23,258 - INFO - MessengerChat initialized
+2024-11-09 14:48:23,258 - INFO - Starting application
+2024-11-09 14:48:26,773 - INFO - Chat cleared for Alice
+2024-11-09 14:48:26,774 - INFO - Chat cleared for Bob
+2024-11-09 14:48:26,774 - INFO - Chat system reset
+2024-11-09 14:48:31,493 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:48:36,275 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:49:47,472 - INFO - Received signal 2
+2024-11-09 14:49:47,473 - INFO - Stopping application
+2024-11-09 14:49:47,474 - INFO - AsyncTkThread stopped
+2024-11-09 14:49:47,487 - INFO - Application stopped
+2024-11-09 14:49:50,174 - INFO - AsyncTkThread initialized
+2024-11-09 14:49:50,195 - INFO - ChatMonitorClient initialized with server: http://localhost:8000
+2024-11-09 14:49:50,359 - INFO - ChatWindow initialized for Alice
+2024-11-09 14:49:50,369 - INFO - ChatWindow initialized for Bob
+2024-11-09 14:49:50,376 - INFO - MessengerChat initialized
+2024-11-09 14:49:50,376 - INFO - Starting application
+2024-11-09 14:49:52,799 - INFO - Chat cleared for Alice
+2024-11-09 14:49:52,799 - INFO - Chat cleared for Bob
+2024-11-09 14:49:52,799 - INFO - Chat system reset
+2024-11-09 14:49:57,914 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:50:02,051 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:50:13,293 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:50:17,048 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
+2024-11-09 14:50:46,600 - INFO - Chat cleared for Alice
+2024-11-09 14:50:46,601 - INFO - Chat cleared for Bob
+2024-11-09 14:50:46,601 - INFO - Chat system reset
+2024-11-09 14:50:51,845 - INFO - HTTP Request: POST http://localhost:8000/analyze_chats "HTTP/1.1 200 OK"
