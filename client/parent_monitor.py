@@ -11,21 +11,21 @@ import os
 
 class MonitorStyle:
     # Colors
-    BG_COLOR = "#ffffff"
-    ALERT_BG = "#ff4444"
-    WARNING_BG = "#ffbb33"
-    SAFE_BG = "#00C851"
-    HEADER_BG = "#4B515D"
+    BG_COLOR = "#f0f0f0"
+    ALERT_BG = "#ff6b6b"
+    WARNING_BG = "#ffcc66"
+    SAFE_BG = "#66cc66"
+    HEADER_BG = "#3b3b3b" 
 
     # Fonts
-    HEADER_FONT = ("Helvetica", 16, "bold")
-    TITLE_FONT = ("Helvetica", 12, "bold")
+    HEADER_FONT = ("Helvetica", 18, "bold")
+    TITLE_FONT = ("Helvetica", 14, "bold")
     TEXT_FONT = ("Helvetica", 12)
     ALERT_FONT = ("Helvetica", 11, "bold")
 
     # Dimensions
-    WINDOW_WIDTH = 600
-    WINDOW_HEIGHT = 800
+    WINDOW_WIDTH = 650
+    WINDOW_HEIGHT = 850
 
 
 @dataclass
@@ -78,16 +78,16 @@ class ParentMonitorWindow:
 
     def setup_gui(self):
         # Main container
-        main_frame = ttk.Frame(self.window, padding="10")
+        main_frame = ttk.Frame(self.window, padding="15")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # Header with controls
         header_frame = tk.Frame(
             main_frame,
             bg=MonitorStyle.HEADER_BG,
-            height=60
+            height=70
         )
-        header_frame.pack(fill=tk.X, pady=(0, 10))
+        header_frame.pack(fill=tk.X, pady=(0, 15))
 
         # Header label
         header_label = tk.Label(
@@ -97,14 +97,14 @@ class ParentMonitorWindow:
             bg=MonitorStyle.HEADER_BG,
             fg="white"
         )
-        header_label.pack(side=tk.LEFT, padx=10)
+        header_label.pack(side=tk.LEFT, padx=15)
 
         # Control buttons frame
         control_frame = tk.Frame(
             header_frame,
             bg=MonitorStyle.HEADER_BG
         )
-        control_frame.pack(side=tk.RIGHT, padx=10)
+        control_frame.pack(side=tk.RIGHT, padx=15)
 
         # Monitor toggle button
         self.monitor_button = tk.Button(
@@ -112,9 +112,9 @@ class ParentMonitorWindow:
             text="Pause Monitoring",
             command=self.toggle_monitoring,
             bg=MonitorStyle.ALERT_BG,
-            fg="grey"
+            fg="white"
         )
-        self.monitor_button.pack(side=tk.LEFT, padx=5)
+        self.monitor_button.pack(side=tk.LEFT, padx=10)
 
         # Reset button
         self.reset_button = tk.Button(
@@ -122,17 +122,17 @@ class ParentMonitorWindow:
             text="Reset Chat",
             command=self.confirm_reset,
             bg=MonitorStyle.WARNING_BG,
-            fg="grey"
+            fg="black"
         )
-        self.reset_button.pack(side=tk.LEFT, padx=5)
+        self.reset_button.pack(side=tk.LEFT, padx=10)
 
         # Live Monitoring Section
         monitoring_frame = ttk.LabelFrame(
             main_frame,
             text="Live Chat Monitoring",
-            padding="10"
+            padding="15"
         )
-        monitoring_frame.pack(fill=tk.BOTH, pady=(0, 10))
+        monitoring_frame.pack(fill=tk.BOTH, pady=(0, 15))
 
         # Status indicators
         self.alice_status = self.create_child_status(monitoring_frame, "Alice")
@@ -143,7 +143,7 @@ class ParentMonitorWindow:
 
         # Alerts Section
         alerts_header_frame = ttk.Frame(main_frame)
-        alerts_header_frame.pack(fill=tk.X, pady=(10, 5))
+        alerts_header_frame.pack(fill=tk.X, pady=(15, 10))
 
         ttk.Label(
             alerts_header_frame,
@@ -166,8 +166,8 @@ class ParentMonitorWindow:
             wrap=tk.WORD,
             font=MonitorStyle.TEXT_FONT,
             height=15,
-            padx=10,
-            pady=5
+            padx=15,
+            pady=10
         )
         self.alerts_display.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
 

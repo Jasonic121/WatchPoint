@@ -12,7 +12,6 @@ def analyze_sentiment(chats: List[Chat]) -> SentimentResponse:
 
     client = OpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
-        base_url="https://nova-litellm-proxy.onrender.com"
     )
 
     chat_text = "\n".join([f"{chat.sender}: {chat.message}" for chat in chats])
@@ -27,7 +26,7 @@ def analyze_sentiment(chats: List[Chat]) -> SentimentResponse:
     """
 
     response = client.chat.completions.create(
-        model="anthropic/claude-3-5-sonnet-20241022",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an AI assistant that analyzes chat messages for sentiment and potential issues."},
             {"role": "user", "content": prompt}

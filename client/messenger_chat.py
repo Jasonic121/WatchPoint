@@ -28,21 +28,26 @@ nest_asyncio.apply()
 
 class MessengerStyle:
     # Colors
-    BG_COLOR = "#ffffff"
-    SENT_BG = "#0084ff"
+    BG_COLOR = "#f0f2f5"  # Light gray background
+    SENT_BG = "#0084ff"   # Facebook Messenger blue
     RECEIVED_BG = "#e4e6eb"
     SENT_FG = "#ffffff"
-    RECEIVED_FG = "#000000"
-    INPUT_BG = "#f0f0f0"
-
+    RECEIVED_FG = "#050505"
+    INPUT_BG = "#ffffff"  # White background for input
+    INPUT_FG = "#000000"  # Black text for input
+    
     # Fonts
-    HEADER_FONT = ("Helvetica", 16, "bold")
-    MESSAGE_FONT = ("Helvetica", 15)
-    INPUT_FONT = ("Helvetica", 15)
-
+    HEADER_FONT = ("Helvetica", 14, "bold")
+    MESSAGE_FONT = ("Helvetica", 12)
+    INPUT_FONT = ("Helvetica", 12, "bold")  # Bold font for input
+    
     # Dimensions
-    WINDOW_WIDTH = 200
-    WINDOW_HEIGHT = 400
+    WINDOW_WIDTH = 400    # Increased width
+    WINDOW_HEIGHT = 600   # Increased height
+    
+    # Padding and margins
+    MESSAGE_PADDING = 12
+    BUBBLE_RADIUS = 20    # For rounded corners
 
 
 class AsyncTkThread:
@@ -83,6 +88,25 @@ class AsyncTkThread:
         logging.info("AsyncTkThread stopped")
 
 
+class RoundedCanvas(tk.Canvas):
+    def create_rounded_rectangle(self, x1, y1, x2, y2, radius=25, **kwargs):
+        points = [
+            x1 + radius, y1,
+            x2 - radius, y1,
+            x2, y1,
+            x2, y1 + radius,
+            x2, y2 - radius,
+            x2, y2,
+            x2 - radius, y2,
+            x1 + radius, y2,
+            x1, y2,
+            x1, y2 - radius,
+            x1, y1 + radius,
+            x1, y1
+        ]
+        return self.create_polygon(points, smooth=True, **kwargs)
+
+
 class ChatWindow:
     """Individual chat window for each user"""
 
@@ -100,9 +124,24 @@ class ChatWindow:
         self.message_callback = message_callback
         self.on_close = on_close
 
+        self.update_interval = 1000  # Update every 1000 milliseconds (1 second)
+        self.schedule_updates()
+
         self.setup_gui()
         self.window.protocol("WM_DELETE_WINDOW", self.handle_close)
         logging.info(f"ChatWindow initialized for {name}")
+
+    def schedule_updates(self):
+        """Schedule regular updates to the chat display."""
+        self.update_chat_display()
+        self.window.after(self.update_interval, self.schedule_updates)
+
+    def update_chat_display(self):
+        """Update the chat display with new messages or changes."""
+        # Logic to refresh or update the chat display
+        # For example, check for new messages and display them
+        logging.info("Chat display updated")
+        # ... additional update logic ...
 
     def setup_gui(self):
         # Main container
@@ -136,9 +175,10 @@ class ChatWindow:
             wrap=tk.WORD,
             font=MessengerStyle.MESSAGE_FONT,
             bg=MessengerStyle.BG_COLOR,
-            padx=10,
-            pady=5,
-            relief=tk.FLAT
+            padx=15,
+            pady=10,
+            relief=tk.FLAT,
+            cursor="arrow"  # Hide text cursor
         )
         self.chat_display.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
 
@@ -148,46 +188,63 @@ class ChatWindow:
         self.chat_display.configure(yscrollcommand=scrollbar.set)
         scrollbar.configure(command=self.chat_display.yview)
 
-        # Message input
+        # Create input frame
         input_frame = ttk.Frame(main_frame)
         input_frame.pack(fill=tk.X, pady=(10, 0))
-
-        self.message_entry = tk.Text(
+        
+        # Create a frame to hold the text entry and give it a border
+        border_frame = tk.Frame(
             input_frame,
-            height=3,
-            font=MessengerStyle.INPUT_FONT,
-            wrap=tk.WORD
+            bg=MessengerStyle.BG_COLOR,
+            highlightbackground="#ddd",
+            highlightthickness=1,
+            bd=0
         )
-        self.message_entry.pack(fill=tk.X, side=tk.LEFT,
-                                expand=True, padx=(0, 10))
-
+        border_frame.pack(fill=tk.X, side=tk.LEFT, expand=True, padx=(0, 10))
+        
+        # Create the message entry
+        self.message_entry = tk.Text(
+            border_frame,
+            height=2,
+            font=MessengerStyle.INPUT_FONT,
+            wrap=tk.WORD,
+            bg=MessengerStyle.INPUT_BG,
+            fg=MessengerStyle.INPUT_FG,  # Set text color
+            relief=tk.FLAT,
+            padx=10,
+            pady=5
+        )
+        self.message_entry.pack(fill=tk.BOTH, expand=True)
+        
+        # Create send button
         send_button = ttk.Button(
             input_frame,
             text="Send",
-            command=self.send_message
+            command=self.send_message,
+            style='Custom.TButton'
         )
         send_button.pack(side=tk.RIGHT)
 
-        # Configure message tags
+        # Configure message bubble tags with rounded corners and better spacing
         self.chat_display.tag_configure(
             "sent",
             justify='right',
             background=MessengerStyle.SENT_BG,
             foreground=MessengerStyle.SENT_FG,
-            spacing1=4,
-            spacing3=4,
-            relief=tk.SOLID,
-            borderwidth=1,
+            spacing1=8,
+            spacing3=8,
+            rmargin=15,
+            lmargin1=50,  # Indentation for sent messages
         )
         self.chat_display.tag_configure(
             "received",
             justify='left',
             background=MessengerStyle.RECEIVED_BG,
             foreground=MessengerStyle.RECEIVED_FG,
-            spacing1=4,
-            spacing3=4,
-            relief=tk.SOLID,
-            borderwidth=1
+            spacing1=8,
+            spacing3=8,
+            lmargin1=15,
+            rmargin=50,  # Indentation for received messages
         )
 
         # Bind keys
@@ -217,14 +274,41 @@ class ChatWindow:
 
     def display_message(self, sender: str, message: str, is_self: bool = False):
         self.chat_display.config(state=tk.NORMAL)
-
-        tag = "sent" if is_self else "received"
+        
+        # Add spacing before message
+        self.chat_display.insert(tk.END, "\n")
+        
+        # Create and insert message bubble
+        bubble = self.create_message_bubble(message, is_self)
+        bubble_window = self.chat_display.window_create(
+            tk.END,
+            window=bubble,
+            padx=20,
+            pady=5
+        )
+        
+        # Add timestamp
         timestamp = datetime.now().strftime("%H:%M")
-
         self.chat_display.insert(
-            tk.END, f"   [{timestamp}] {sender}:   \n", tag)
-        self.chat_display.insert(tk.END, f"   {message}   \n", tag)
-
+            tk.END,
+            f"\n{timestamp}\n",
+            "timestamp"
+        )
+        
+        # Configure timestamp tag
+        self.chat_display.tag_configure(
+            "timestamp",
+            justify='right' if is_self else 'left',
+            font=("Helvetica", 9),
+            foreground="#65676B"
+        )
+        
+        # Align message to right or left
+        if is_self:
+            bubble.pack(anchor='e')
+        else:
+            bubble.pack(anchor='w')
+        
         self.chat_display.see(tk.END)
         self.chat_display.config(state=tk.DISABLED)
 
@@ -242,6 +326,109 @@ class ChatWindow:
             self.on_close()
         self.window.destroy()
         logging.info(f"ChatWindow closed for {self.name}")
+
+    def create_rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
+        """Create a rounded rectangle"""
+        points = [
+            x1 + radius, y1,
+            x2 - radius, y1,
+            x2, y1,
+            x2, y1 + radius,
+            x2, y2 - radius,
+            x2, y2,
+            x2 - radius, y2,
+            x1 + radius, y2,
+            x1, y2,
+            x1, y2 - radius,
+            x1, y1 + radius,
+            x1, y1
+        ]
+        return self.chat_display.create_polygon(points, smooth=True, **kwargs)
+
+    def create_message_bubble(self, message, is_self=False):
+        """Create a message bubble with rounded corners"""
+        frame = tk.Frame(
+            self.chat_display,
+            bg=MessengerStyle.BG_COLOR,  # Set to background color
+            padx=MessengerStyle.MESSAGE_PADDING,
+            pady=MessengerStyle.MESSAGE_PADDING // 2
+        )
+        
+        # Create the rounded rectangle first
+        shape = RoundedCanvas(
+            frame,
+            width=250,  # Adjust width as needed
+            height=50,  # Adjust height as needed
+            bg=MessengerStyle.BG_COLOR,
+            highlightthickness=0
+        )
+        shape.create_rounded_rectangle(
+            2, 2, 248, 48,  # Adjust dimensions to fit the frame
+            radius=MessengerStyle.BUBBLE_RADIUS,
+            fill=MessengerStyle.SENT_BG if is_self else MessengerStyle.RECEIVED_BG
+        )
+        shape.pack(expand=True, fill=tk.BOTH)
+        
+        # Create the text label
+        label = tk.Label(
+            frame,
+            text=message,
+            wraplength=230,  # Adjust wrap length as needed
+            justify=tk.LEFT,
+            bg=MessengerStyle.SENT_BG if is_self else MessengerStyle.RECEIVED_BG,
+            fg=MessengerStyle.SENT_FG if is_self else MessengerStyle.RECEIVED_FG,
+            font=MessengerStyle.MESSAGE_FONT
+        )
+        label.place(x=10, y=10)  # Adjust position as needed
+        
+        return frame
+
+    def update_message_bubble(self, frame, is_self):
+        """Update the message bubble shape"""
+        frame.update_idletasks()
+        width = frame.winfo_width()
+        height = frame.winfo_height()
+        
+        if not hasattr(frame, "shape"):
+            frame.shape = RoundedCanvas(
+                frame,
+                width=width,
+                height=height,
+                bg=MessengerStyle.BG_COLOR,
+                highlightthickness=0
+            )
+            frame.shape.place(x=0, y=0)
+        
+        frame.shape.delete("all")
+        frame.shape.create_rounded_rectangle(
+            2, 2, width-2, height-2,
+            radius=MessengerStyle.BUBBLE_RADIUS,
+            fill=MessengerStyle.SENT_BG if is_self else MessengerStyle.RECEIVED_BG
+        )
+
+    def update_input_container(self, container):
+        """Update the input container shape"""
+        container.update_idletasks()
+        width = container.winfo_width()
+        height = container.winfo_height()
+        
+        if not hasattr(container, "shape"):
+            container.shape = RoundedCanvas(
+                container,
+                width=width,
+                height=height,
+                bg=MessengerStyle.BG_COLOR,
+                highlightthickness=0
+            )
+            container.shape.lower()  # Place the shape behind other widgets
+        
+        container.shape.configure(width=width, height=height)
+        container.shape.delete("all")
+        container.shape.create_rounded_rectangle(
+            2, 2, width-2, height-2,
+            radius=MessengerStyle.BUBBLE_RADIUS,
+            fill=MessengerStyle.INPUT_BG
+        )
 
 
 class MessengerChat:
